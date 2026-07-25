@@ -1,0 +1,83 @@
+{
+  "name": "Booking Assistant",
+  "firstMessage": "Hi, thanks for calling! I can help you check availability, book, or cancel an appointment. How can I help you today?",
+  "model": {
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "temperature": 0.4,
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a friendly, efficient phone receptionist for a small clinic. Your job is to help callers check appointment availability, book new appointments, and cancel existing ones.\n\nRules:\n- Always speak naturally and concisely, like a real receptionist on the phone. Keep responses short (1-2 sentences) since this is a voice conversation.\n- Never make up availability, service names, or confirmation details - always call the appropriate function to check real data.\n- Before booking, confirm with the caller: name, phone number, service, date, and time.\n- Dates must be in YYYY-MM-DD format and times in 24-hour HH:MM format when calling functions - convert from whatever the caller says naturally (e.g. 'tomorrow at 3pm' -> correct date and '15:00').\n- If a requested slot isn't available, use check_availability to offer the caller real open times on that date.\n- After a successful booking or cancellation, read back the confirmation clearly.\n- If the caller asks something unrelated to booking (e.g. medical advice), politely say you can only help with scheduling and offer to take a message or transfer them.\n- If you don't have enough information to complete an action, ask a clarifying question rather than guessing."
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "list_services",
+          "description": "Get the list of services offered and their typical duration.",
+          "parameters": { "type": "object", "properties": {} }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "check_availability",
+          "description": "Check open appointment slots for a given date.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "date": { "type": "string", "description": "Date in YYYY-MM-DD format" }
+            },
+            "required": ["date"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "book_appointment",
+          "description": "Book an appointment for a caller at a specific date and time.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "customer_name": { "type": "string" },
+              "phone": { "type": "string" },
+              "service": { "type": "string" },
+              "date": { "type": "string", "description": "YYYY-MM-DD" },
+              "time": { "type": "string", "description": "HH:MM 24-hour" }
+            },
+            "required": ["customer_name", "phone", "date", "time"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "cancel_appointment",
+          "description": "Cancel an existing confirmed appointment for a caller, identified by phone number and optionally date.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "phone": { "type": "string" },
+              "date": { "type": "string", "description": "YYYY-MM-DD, optional" }
+            },
+            "required": ["phone"]
+          }
+        }
+      }
+    ]
+  },
+  "voice": {
+    "provider": "11labs",
+    "voiceId": "21m00Tcm4TlvDq8ikWAM"
+  },
+  "transcriber": {
+    "provider": "deepgram",
+    "model": "nova-2",
+    "language": "en"
+  },
+  "serverUrl": "REPLACE_WITH_YOUR_DEPLOYED_URL/webhook",
+  "serverUrlSecret": "REPLACE_WITH_A_RANDOM_SECRET_IF_YOU_SET_VAPI_WEBHOOK_SECRET_ENV_VAR"
+}
